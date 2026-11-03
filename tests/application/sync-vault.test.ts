@@ -7,6 +7,7 @@ import {
   ANKI_MODEL_CLOZE,
   ANKI_MODEL_REMINDER,
   ANKI_MODEL_REVERSED,
+  ANKI_MODEL_TYPE_IN,
 } from "../../src/core/render/render-card.js";
 import { DEFAULT_SETTINGS } from "../../src/core/config/settings.js";
 import type { FlashcardsSettings } from "../../src/core/config/settings.js";
@@ -28,7 +29,7 @@ import { bootAllV2, err, makeFakeFetch, ok } from "../_utils/fake-fetch.js";
  *   - Aggregates totals from ankiResults arrays counting only `status === "ok"` ops.
  */
 
-const ALL_MODELS = [ANKI_MODEL_BASIC, ANKI_MODEL_REVERSED, ANKI_MODEL_CLOZE, ANKI_MODEL_REMINDER];
+const ALL_MODELS = [ANKI_MODEL_BASIC, ANKI_MODEL_REVERSED, ANKI_MODEL_CLOZE, ANKI_MODEL_REMINDER, ANKI_MODEL_TYPE_IN];
 const VAULT = "MyVault";
 
 const TWO_CARDS = ["Q1::A1", "", "Q2::A2", ""].join("\n");
@@ -235,6 +236,7 @@ describe("syncVault — sequential ordering", () => {
     const actions = calls.map((c) => c.action);
     expect(actions).toEqual([
       "modelNames",
+      "modelFieldNames",
       "modelFieldNames",
       "modelFieldNames",
       "modelFieldNames",

@@ -444,6 +444,77 @@ describe("extractCardsFromMarkdown", () => {
     });
   });
 
+  describe("type-in inline cards (:=:)", () => {
+    test("parses a type-in inline card", () => {
+      const result = extractCardsFromMarkdown("Capital of France?:=: Paris", {
+        notePath: "TypeIn.md",
+        settings: DEFAULT_SETTINGS,
+      });
+
+      expect(result.cards).toEqual([
+        expect.objectContaining({
+          answer: "Paris",
+          front: "Capital of France?",
+          kind: "type-in",
+          source: expect.objectContaining({ syntax: "inline" }),
+        }),
+      ]);
+    });
+
+    test("parses a type-in card in a list item", () => {
+      const result = extractCardsFromMarkdown("- Capital of Italy?:=:Rome", {
+        notePath: "TypeIn.md",
+        settings: DEFAULT_SETTINGS,
+      });
+
+      expect(result.cards).toEqual([
+        expect.objectContaining({ answer: "Rome", kind: "type-in" }),
+      ]);
+    });
+
+    test("ignores the separator inside inline code", () => {
+      const result = extractCardsFromMarkdown("Use `a:=:b` in the config", {
+        notePath: "TypeIn.md",
+        settings: DEFAULT_SETTINGS,
+      });
+
+      expect(result.cards).toEqual([]);
+    });
+
+    test("type-in, basic, and reversed cards co-exist in the same note", () => {
+      const result = extractCardsFromMarkdown(
+        ["Foo:: Bar", "", "Baz::: Qux", "", "Word?:=:word"].join("\n"),
+        { notePath: "TypeIn.md", settings: DEFAULT_SETTINGS },
+      );
+
+      expect(result.cards.map((card) => card.kind)).toEqual([
+        "basic",
+        "reversed",
+        "type-in",
+      ]);
+    });
+
+    test("respects a custom type-in separator", () => {
+      const result = extractCardsFromMarkdown("Q ?? A", {
+        notePath: "TypeIn.md",
+        settings: { ...DEFAULT_SETTINGS, inlineTypeInSeparator: "??" },
+      });
+
+      expect(result.cards).toEqual([
+        expect.objectContaining({ answer: "A", front: "Q", kind: "type-in" }),
+      ]);
+    });
+
+    test("an empty type-in separator disables inline type-in cards", () => {
+      const result = extractCardsFromMarkdown("Q:=:A", {
+        notePath: "TypeIn.md",
+        settings: { ...DEFAULT_SETTINGS, inlineTypeInSeparator: "" },
+      });
+
+      expect(result.cards).toEqual([]);
+    });
+  });
+
   describe("hashtag #card basic", () => {
     test("multi-line answer with separate-line tag", () => {
       const result = extractCardsFromMarkdown(
@@ -671,6 +742,41 @@ describe("extractCardsFromMarkdown", () => {
         expect.objectContaining({ answer: "", kind: "cloze" }),
       ]);
       expect(result.warnings).toEqual([]);
+    });
+
+    test("type: type-in maps front and back to a type-in card", () => {
+      const result = extractCardsFromMarkdown(
+        [
+          "```flashcard",
+          "type: type-in",
+          "front: Capital of France?",
+          "back: Paris",
+          "```",
+        ].join("\n"),
+        { notePath: "T.md", settings: DEFAULT_SETTINGS },
+      );
+
+      expect(result.cards).toEqual([
+        expect.objectContaining({
+          answer: "Paris",
+          front: "Capital of France?",
+          kind: "type-in",
+          source: expect.objectContaining({ syntax: "fenced" }),
+        }),
+      ]);
+      expect(result.warnings).toEqual([]);
+    });
+
+    test("type: type-in requires back", () => {
+      const result = extractCardsFromMarkdown(
+        ["```flashcard", "type: type-in", "front: Question", "```"].join("\n"),
+        { notePath: "T.md", settings: DEFAULT_SETTINGS },
+      );
+
+      expect(result.cards).toEqual([]);
+      expect(result.warnings).toEqual([
+        "Fenced flashcard block missing required `back:` field; skipped.",
+      ]);
     });
 
     test("an unsupported fenced type is reported and skipped", () => {

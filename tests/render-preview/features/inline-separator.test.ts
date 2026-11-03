@@ -17,6 +17,17 @@ describe("inline-separator feature", () => {
     expect(out[0]!.el).toEqual({ cls: "ff-sep", text: "→", data: { kind: "basic" } });
   });
 
+  test("matches `:=:` as type-in", () => {
+    const out = feat.detect("Word?:=:word");
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatchObject({ start: 5, end: 8 });
+    expect(out[0]!.el).toEqual({
+      cls: "ff-sep",
+      text: "⌨",
+      data: { kind: "type-in" },
+    });
+  });
+
   test("matches `:::` as reversed, not basic", () => {
     const out = feat.detect("Front::: Back");
     expect(out).toHaveLength(1);

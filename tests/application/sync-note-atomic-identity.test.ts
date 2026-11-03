@@ -5,6 +5,7 @@ import { AnkiConnectClient } from "../../src/adapters/anki/anki-connect-client.j
 import {
   ANKI_MODEL_BASIC,
   ANKI_MODEL_REVERSED,
+  ANKI_MODEL_TYPE_IN,
   ANKI_MODEL_CLOZE,
   ANKI_MODEL_REMINDER,
 } from "../../src/core/render/render-card.js";
@@ -33,7 +34,7 @@ import { bootAllV2, makeFakeFetch, ok } from "../_utils/fake-fetch.js";
  *  - `write-card-frontmatter` persists `cue` for atomic entries.
  */
 
-const ALL_MODELS = [ANKI_MODEL_BASIC, ANKI_MODEL_REVERSED, ANKI_MODEL_CLOZE, ANKI_MODEL_REMINDER];
+const ALL_MODELS = [ANKI_MODEL_BASIC, ANKI_MODEL_REVERSED, ANKI_MODEL_CLOZE, ANKI_MODEL_REMINDER, ANKI_MODEL_TYPE_IN];
 const VAULT = "MyVault";
 
 interface FakeRepoHandle {

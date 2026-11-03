@@ -6,6 +6,7 @@ import {
   ANKI_MODEL_CLOZE,
   ANKI_MODEL_REMINDER,
   ANKI_MODEL_REVERSED,
+  ANKI_MODEL_TYPE_IN,
   getAnkiModelSpecs,
 } from "../../../src/core/render/render-card.js";
 import { executeSyncPlan } from "../../../src/application/sync/execute-sync-plan.js";
@@ -138,7 +139,7 @@ function deleteOp(blockId: string, nid: number): DeleteOp {
   return { blockId, nid };
 }
 
-const ALL_MODELS = [ANKI_MODEL_BASIC, ANKI_MODEL_REVERSED, ANKI_MODEL_CLOZE, ANKI_MODEL_REMINDER];
+const ALL_MODELS = [ANKI_MODEL_BASIC, ANKI_MODEL_REVERSED, ANKI_MODEL_CLOZE, ANKI_MODEL_REMINDER, ANKI_MODEL_TYPE_IN];
 
 // v2-shaped field lists returned by modelFieldNames for each required model.
 // `Source` present means the extend-in-place upgrade is a no-op.
@@ -147,11 +148,12 @@ const V2_FIELDS: Record<string, string[]> = {
   [ANKI_MODEL_REVERSED]: ["Front", "Back", "Context", "Source"],
   [ANKI_MODEL_CLOZE]: ["Text", "Extra", "Context", "Source"],
   [ANKI_MODEL_REMINDER]: ["Content", "Context", "Source"],
+  [ANKI_MODEL_TYPE_IN]: ["Front", "Back", "Context", "Source"],
 };
 
-// Standard bootstrap when all 4 required models are already present AND already
+// Standard bootstrap when all 5 required models are already present AND already
 // v2-shaped (have Source field). Sequence: modelNames, then modelFieldNames for
-// each of the 4 models in REQUIRED_MODELS order.
+// each of the 5 models in REQUIRED_MODELS order.
 function bootAllV2(): FakeResponseSpec[] {
   return [
     ok(ALL_MODELS),
@@ -159,12 +161,14 @@ function bootAllV2(): FakeResponseSpec[] {
     ok(V2_FIELDS[ANKI_MODEL_REVERSED]),
     ok(V2_FIELDS[ANKI_MODEL_CLOZE]),
     ok(V2_FIELDS[ANKI_MODEL_REMINDER]),
+    ok(V2_FIELDS[ANKI_MODEL_TYPE_IN]),
   ];
 }
 
 // Action sequence emitted by `bootAllV2`.
 const BOOT_ACTIONS_ALL_V2 = [
   "modelNames",
+  "modelFieldNames",
   "modelFieldNames",
   "modelFieldNames",
   "modelFieldNames",
@@ -187,7 +191,7 @@ function emptyPlan(overrides: Partial<SyncPlan> = {}): SyncPlan {
 // ---------------------------------------------------------------------------
 
 describe("executeSyncPlan — bootstrap models", () => {
-  it("probes fields (no createModel, no extend) when all 4 are present and v2-shaped", async () => {
+  it("probes fields (no createModel, no extend) when all 5 are present and v2-shaped", async () => {
     const { calls, fetch } = makeFakeFetch(bootAllV2());
     const client = makeClient(fetch);
 
@@ -201,13 +205,14 @@ describe("executeSyncPlan — bootstrap models", () => {
     expect(calls.map((c) => c.action)).toEqual(BOOT_ACTIONS_ALL_V2);
   });
 
-  it("creates exactly the missing model (no field-probe for it) when 1 of 4 is absent", async () => {
+  it("creates exactly the missing model (no field-probe for it) when 1 of 5 is absent", async () => {
     const { calls, fetch } = makeFakeFetch([
-      ok([ANKI_MODEL_BASIC, ANKI_MODEL_REVERSED, ANKI_MODEL_REMINDER]),
+      ok([ANKI_MODEL_BASIC, ANKI_MODEL_REVERSED, ANKI_MODEL_REMINDER, ANKI_MODEL_TYPE_IN]),
       ok(V2_FIELDS[ANKI_MODEL_BASIC]),
       ok(V2_FIELDS[ANKI_MODEL_REVERSED]),
       ok({ id: 1 }), // createModel for cloze
       ok(V2_FIELDS[ANKI_MODEL_REMINDER]),
+      ok(V2_FIELDS[ANKI_MODEL_TYPE_IN]),
     ]);
     const client = makeClient(fetch);
 
@@ -224,6 +229,7 @@ describe("executeSyncPlan — bootstrap models", () => {
       "modelFieldNames",
       "createModel",
       "modelFieldNames",
+      "modelFieldNames",
     ]);
 
     const expectedSpec = getAnkiModelSpecs().find(
@@ -232,13 +238,41 @@ describe("executeSyncPlan — bootstrap models", () => {
     expect(calls[3]!.params).toEqual(expectedSpec);
   });
 
-  it("creates all 4 models when none are present (no field probes)", async () => {
+  it("adds the type-in model to an existing install without touching the other models", async () => {
+    const { calls, fetch } = makeFakeFetch([
+      ok([ANKI_MODEL_BASIC, ANKI_MODEL_REVERSED, ANKI_MODEL_CLOZE, ANKI_MODEL_REMINDER]),
+      ok(V2_FIELDS[ANKI_MODEL_BASIC]),
+      ok(V2_FIELDS[ANKI_MODEL_REVERSED]),
+      ok(V2_FIELDS[ANKI_MODEL_CLOZE]),
+      ok(V2_FIELDS[ANKI_MODEL_REMINDER]),
+      ok({ id: 5 }), // createModel for type-in
+    ]);
+    const client = makeClient(fetch);
+
+    await executeSyncPlan({
+      client,
+      notePath: NOTE_PATH,
+      plan: emptyPlan(),
+      vaultName: VAULT,
+    });
+
+    expect(calls.map((c) => c.action)).toEqual([
+      ...BOOT_ACTIONS_ALL_V2.slice(0, -1),
+      "createModel",
+    ]);
+    expect(calls[5]!.params).toEqual(
+      getAnkiModelSpecs().find((s) => s.modelName === ANKI_MODEL_TYPE_IN),
+    );
+  });
+
+  it("creates all 5 models when none are present (no field probes)", async () => {
     const { calls, fetch } = makeFakeFetch([
       ok([]),
       ok({ id: 1 }),
       ok({ id: 2 }),
       ok({ id: 3 }),
       ok({ id: 4 }),
+      ok({ id: 5 }),
     ]);
     const client = makeClient(fetch);
 
@@ -251,6 +285,7 @@ describe("executeSyncPlan — bootstrap models", () => {
 
     expect(calls.map((c) => c.action)).toEqual([
       "modelNames",
+      "createModel",
       "createModel",
       "createModel",
       "createModel",
@@ -280,6 +315,7 @@ describe("executeSyncPlan — bootstrap models", () => {
       ok(V2_FIELDS[ANKI_MODEL_REVERSED]),
       ok(V2_FIELDS[ANKI_MODEL_CLOZE]),
       ok(V2_FIELDS[ANKI_MODEL_REMINDER]),
+      ok(V2_FIELDS[ANKI_MODEL_TYPE_IN]),
     ]);
     const client = makeClient(fetch);
 
@@ -296,6 +332,7 @@ describe("executeSyncPlan — bootstrap models", () => {
       "modelTemplates",
       "modelFieldAdd",
       "updateModelTemplates",
+      "modelFieldNames",
       "modelFieldNames",
       "modelFieldNames",
       "modelFieldNames",
@@ -317,7 +354,7 @@ describe("executeSyncPlan — bootstrap models", () => {
     );
   });
 
-  it("extends all 4 earlier-shaped models when they lack Context and Source", async () => {
+  it("extends all earlier-shaped models when they lack Context and Source", async () => {
     const { calls, fetch } = makeFakeFetch([
       ok(ALL_MODELS),
       ok(["Front", "Back"]), // basic
@@ -332,6 +369,7 @@ describe("executeSyncPlan — bootstrap models", () => {
       ok(["Content"]), // reminder
       ok({ "Card 1": { Back: "{{FrontSide}}", Front: "{{Content}}" } }),
       ok(null), ok(null), ok(null), // extend reminder
+      ok(V2_FIELDS[ANKI_MODEL_TYPE_IN]), // type-in is always created v2-shaped
     ]);
     const client = makeClient(fetch);
 
@@ -364,6 +402,7 @@ describe("executeSyncPlan — bootstrap models", () => {
       "modelFieldAdd",
       "modelFieldAdd",
       "updateModelTemplates",
+      "modelFieldNames",
     ]);
     expect((calls[13]!.params as { modelName: string }).modelName).toBe(
       ANKI_MODEL_CLOZE,
@@ -729,6 +768,37 @@ describe("executeSyncPlan — UPDATE ops", () => {
         id: 555,
         modelName: ANKI_MODEL_REVERSED,
         tags: ["source", "leech"],
+      }),
+    });
+  });
+
+  it("converts basic to type-in in place, keeping the note id", async () => {
+    const u: UpdateOp = {
+      ...updateOp(makeCard({ answer: "corpus", kind: "type-in" }), 556),
+      existing: {
+        cards: [{ cardId: 43, deckName: "Default" }],
+        modelName: ANKI_MODEL_BASIC,
+        tags: [],
+      },
+    };
+    const { calls, fetch } = makeFakeFetch([...bootAllV2(), ok(null)]);
+
+    const result = await executeSyncPlan({
+      client: makeClient(fetch),
+      notePath: NOTE_PATH,
+      plan: emptyPlan({ update: [u] }),
+      vaultName: VAULT,
+    });
+
+    expect(result.updates[0]).toEqual(
+      expect.objectContaining({ status: "ok" }),
+    );
+    expect(calls.some((c) => c.action === "deleteNotes")).toBe(false);
+    expect(calls.find((c) => c.action === "updateNoteModel")!.params).toEqual({
+      note: expect.objectContaining({
+        fields: expect.objectContaining({ Back: "corpus" }),
+        id: 556,
+        modelName: ANKI_MODEL_TYPE_IN,
       }),
     });
   });
@@ -1164,11 +1234,12 @@ describe("executeSyncPlan — integration smoke", () => {
     const d = deleteOp("d1", 51);
 
     const { calls, fetch } = makeFakeFetch([
-      ok([ANKI_MODEL_BASIC, ANKI_MODEL_REVERSED, ANKI_MODEL_REMINDER]), // cloze missing
+      ok([ANKI_MODEL_BASIC, ANKI_MODEL_REVERSED, ANKI_MODEL_REMINDER, ANKI_MODEL_TYPE_IN]), // cloze missing
       ok(V2_FIELDS[ANKI_MODEL_BASIC]),
       ok(V2_FIELDS[ANKI_MODEL_REVERSED]),
       ok({ id: 9 }), // createModel cloze
       ok(V2_FIELDS[ANKI_MODEL_REMINDER]),
+      ok(V2_FIELDS[ANKI_MODEL_TYPE_IN]),
       ok(["Existing"]), // NewDeck missing
       ok(1), // createDeck NewDeck
       ok(7001), // addNote c1
@@ -1189,6 +1260,7 @@ describe("executeSyncPlan — integration smoke", () => {
       "modelFieldNames",
       "modelFieldNames",
       "createModel",
+      "modelFieldNames",
       "modelFieldNames",
       "deckNames",
       "createDeck",

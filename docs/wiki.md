@@ -117,6 +117,20 @@ TCP:::Transmission Control Protocol
 
 This creates a note that Anki can ask in both directions.
 
+### Inline type-in card
+
+```markdown
+Capital of France?:=:Paris
+```
+
+This creates a card that asks you to type the answer. After you reveal it,
+Anki shows your input compared with the expected answer. The card uses the
+`Obsidian-type-in` note type.
+
+Anki compares what you type with the whole answer, after removing formatting.
+Keep the answer short and exact, such as one word or name. Put hints and
+explanations in the question.
+
 ### Cloze card
 
 ```markdown
@@ -149,8 +163,9 @@ type: reversed
 ```
 ````
 
-`front` and `back` are required for basic and reversed cards. `type` is
-optional and defaults to `basic`. Use `type: reversed` for a reversed note.
+`front` and `back` are required for basic, reversed, and type-in cards.
+`type` is optional and defaults to `basic`. Use `type: reversed` for a reversed
+note and `type: type-in` for a card that asks you to type the answer.
 
 For an explicit cloze card, use `type: cloze`. `front` becomes Anki's `Text`
 field. `back` is optional and becomes Anki's `Extra` field.
@@ -298,8 +313,8 @@ for implicit inline and cloze syntax in that note. If its value is invalid,
 sync reports the error and does not reinterpret the prose as implicit cards.
 Explicit fenced and hashtag cards remain available.
 
-**Inline cards** is on by default. Turn it off to stop `::` and `:::` from
-creating cards. The other card types still work.
+**Inline cards** is on by default. Turn it off to stop `::`, `:::`, and `:=:`
+from creating cards. The other card types still work.
 
 ## Hashtag answer boundaries
 
@@ -487,7 +502,8 @@ You do not need to write default values in a note or change them in settings.
 | Context separator | ` > ` | Separates nested heading parts inside the context. |
 | Basic separator | `::` | Defines an inline basic card. |
 | Reversed separator | `:::` | Defines an inline reversed card. |
-| Inline cards | On | Allows `::` and `:::` to create cards. |
+| Type-in separator | `:=:` | Defines an inline type-in card. Set `inlineTypeInSeparator` to an empty string to turn it off. |
+| Inline cards | On | Allows `::`, `:::`, and `:=:` to create cards. |
 | Highlight clozes | On | Allows `==text==` to create automatic clozes. |
 | Fenced card label | `flashcard` | Starts an explicit fenced card. |
 | Hashtag syntax | On | Uses `#card` by default. |

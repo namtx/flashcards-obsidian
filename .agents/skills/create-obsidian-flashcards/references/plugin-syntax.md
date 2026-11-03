@@ -9,6 +9,7 @@ the plugin adds identity metadata during update.
 | --- | --- |
 | Short question and answer | Inline basic |
 | Both directions are useful | Inline or fenced reversed |
+| Exact recall of a short answer, such as spelling | Inline or fenced type-in |
 | Recall missing content in context | Cloze |
 | Multi-block answer under a topic | Hashtag heading |
 | Exact explicit boundaries | Fenced card or card callout |
@@ -29,6 +30,16 @@ Reversed:
 ```markdown
 TCP:::Transmission Control Protocol
 ```
+
+Type in the answer:
+
+```markdown
+Capital of France?:=:Paris
+```
+
+Anki compares the typed text with the whole answer after removing formatting,
+so a type-in answer must be the bare expected text: no hints, explanations,
+or punctuation that the learner would not type.
 
 An inline card inside a list item owns the item and its indented child blocks.
 A sibling item at the same indentation starts a separate card.
@@ -60,7 +71,7 @@ type: reversed
 ````
 
 `type` is optional and defaults to `basic`. Supported values are `basic`,
-`reversed`, `cloze`, and `reminder`.
+`reversed`, `cloze`, `reminder`, and `type-in`.
 
 A cloze fence uses `front` as Anki's Text field. Its optional `back` becomes
 Extra. A reminder fence uses one `content` field:

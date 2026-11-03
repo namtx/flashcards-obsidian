@@ -109,7 +109,7 @@ export function err(error: string): FakeResponseSpec {
 }
 
 /**
- * Stubs the model-bootstrap chatter: modelNames followed by 4 v2-shaped
+ * Stubs the model-bootstrap chatter: modelNames followed by 5 v2-shaped
  * modelFieldNames responses (Context and Source fields present, no
  * extend-in-place upgrade fires). Caller passes the model name list expected
  * by the bootstrap.
@@ -123,5 +123,6 @@ export function bootAllV2(
     ok(["Front", "Back", "Context", "Source"]),
     ok(["Text", "Extra", "Context", "Source"]),
     ok(["Content", "Context", "Source"]),
+    ok(["Front", "Back", "Context", "Source"]),
   ];
 }

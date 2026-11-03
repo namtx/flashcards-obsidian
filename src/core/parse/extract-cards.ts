@@ -12,7 +12,7 @@ import type {
 import { visit } from "unist-util-visit";
 
 import type { FlashcardsSettings } from "../config/settings.js";
-import type { Flashcard } from "../domain/card.js";
+import type { CardKind, Flashcard } from "../domain/card.js";
 import { intersectsSpan, type Span } from "./cloze-spans.js";
 import { parseClozeSyntax } from "./cloze-syntax.js";
 import { extractAtomicCards } from "./extract-atomic-cards.js";
@@ -160,12 +160,7 @@ export function extractCardsFromMarkdown(
       const back = fields.back ?? "";
       const type = fields.type || "basic";
 
-      if (
-        type !== "basic" &&
-        type !== "reversed" &&
-        type !== "cloze" &&
-        type !== "reminder"
-      ) {
+      if (!isFencedCardKind(type)) {
         warnings.push(
           `Fenced flashcard block has unsupported \`type: ${type}\`; skipped.`,
         );
@@ -184,13 +179,7 @@ export function extractCardsFromMarkdown(
           answer: back,
           deckName: resolvedDeck,
           front,
-          kind: type === "cloze"
-            ? "cloze"
-            : type === "reversed"
-              ? "reversed"
-              : type === "reminder"
-                ? "reminder"
-                : "basic",
+          kind: type,
           source: {
             endOffset: node.position?.end.offset ?? 0,
             line: node.position?.start.line ?? 1,
@@ -647,11 +636,28 @@ function parseFencedFields(block: string): FencedFields {
   return fields;
 }
 
+const FENCED_CARD_KINDS: readonly CardKind[] = [
+  "basic",
+  "cloze",
+  "reminder",
+  "reversed",
+  "type-in",
+];
+
+function isFencedCardKind(type: string): type is CardKind {
+  return (FENCED_CARD_KINDS as readonly string[]).includes(type);
+}
+
 function parseInlineCard(
   line: string,
   settings: FlashcardsSettings,
   protectedSpans: Span[],
-): { answer: string; front: string; kind: "basic" | "reversed"; syntax: "inline" } | null {
+): {
+  answer: string;
+  front: string;
+  kind: "basic" | "reversed" | "type-in";
+  syntax: "inline";
+} | null {
   const excludedSpans = [
     ...parseClozeSyntax(line, protectedSpans, {
       auto: settings.highlightCloze.enabled,
@@ -665,6 +671,19 @@ function parseInlineCard(
       answer: line.slice(reverseIndex + settings.inlineReverseSeparator.length).trim(),
       front: line.slice(0, reverseIndex).trim(),
       kind: "reversed",
+      syntax: "inline",
+    };
+  }
+
+  const typeInSeparator = settings.inlineTypeInSeparator;
+  const typeInIndex = typeInSeparator === ""
+    ? -1
+    : findSeparator(line, typeInSeparator, excludedSpans);
+  if (typeInIndex >= 0) {
+    return {
+      answer: line.slice(typeInIndex + typeInSeparator.length).trim(),
+      front: line.slice(0, typeInIndex).trim(),
+      kind: "type-in",
       syntax: "inline",
     };
   }

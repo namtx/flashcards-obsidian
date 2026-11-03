@@ -16,6 +16,7 @@ import {
   ANKI_MODEL_CLOZE,
   ANKI_MODEL_REMINDER,
   ANKI_MODEL_REVERSED,
+  ANKI_MODEL_TYPE_IN,
   renderCardForAnki,
 } from "../../src/core/render/render-card.js";
 import type { AnkiAddNoteParams, AnkiCreateModelSpec } from "../../src/core/sync/anki-contract.js";
@@ -76,6 +77,7 @@ const MODEL_NAMES = [
   ANKI_MODEL_REVERSED,
   ANKI_MODEL_CLOZE,
   ANKI_MODEL_REMINDER,
+  ANKI_MODEL_TYPE_IN,
 ];
 
 function blockIdFor(index: number): string {

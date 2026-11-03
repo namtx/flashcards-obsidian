@@ -114,6 +114,15 @@ TCP:::Transmission Control Protocol
 A reversed note creates cards in both directions. Use it only when both
 directions are useful.
 
+### Type in the answer
+
+```markdown
+Capital of France?:=:Paris
+```
+
+Anki asks you to type the answer and compares your input with it. Keep the
+answer short and exact.
+
 ### Cloze
 
 ```markdown
@@ -154,8 +163,8 @@ type: reversed
 ```
 ````
 
-The default `type` is `basic`. Other values are `reversed`, `cloze`, and
-`reminder`. Reminder blocks use `content:` instead of `front:` and `back:`.
+The default `type` is `basic`. Other values are `reversed`, `cloze`,
+`reminder`, and `type-in`. Reminder blocks use `content:` instead of `front:` and `back:`.
 
 The plugin also supports card callouts, cards in lists, and atomic note cards.
 See the [v2 wiki](docs/wiki.md) for their exact rules and examples.

@@ -70,6 +70,7 @@ class KindRecreationConfirmModal extends Modal {
 
 function shortModel(modelName: string): string {
   if (modelName.endsWith("basic-reversed")) return "reversed";
+  if (modelName.endsWith("type-in")) return "type-in";
   if (modelName.endsWith("cloze")) return "cloze";
   if (modelName.endsWith("basic")) return "basic";
   return modelName;

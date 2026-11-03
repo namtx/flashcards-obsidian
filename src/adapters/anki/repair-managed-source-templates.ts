@@ -4,6 +4,7 @@ import {
   ANKI_MODEL_CLOZE,
   ANKI_MODEL_REMINDER,
   ANKI_MODEL_REVERSED,
+  ANKI_MODEL_TYPE_IN,
 } from "../../core/render/render-card.js";
 import type {
   AnkiModelTemplates,
@@ -22,6 +23,7 @@ const MANAGED_MODELS = [
   ANKI_MODEL_REVERSED,
   ANKI_MODEL_CLOZE,
   ANKI_MODEL_REMINDER,
+  ANKI_MODEL_TYPE_IN,
 ];
 const SOURCE_TOKEN = "{{Source}}";
 

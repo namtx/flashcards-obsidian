@@ -28,6 +28,7 @@ export const ANKI_MODEL_BASIC = "Obsidian-basic";
 export const ANKI_MODEL_REVERSED = "Obsidian-basic-reversed";
 export const ANKI_MODEL_CLOZE = "Obsidian-cloze";
 export const ANKI_MODEL_REMINDER = "Obsidian-reminder";
+export const ANKI_MODEL_TYPE_IN = "Obsidian-type-in";
 
 const DEFAULT_CSS = `/* flashcards-obsidian-managed:start */
 .card {
@@ -63,6 +64,7 @@ const DEFAULT_CSS = `/* flashcards-obsidian-managed:start */
 .flashcards-question,
 .flashcards-reminder,
 .flashcards-reminder-guidance,
+.flashcards-type-answer,
 .flashcards-context,
 .flashcards-answer,
 .flashcards-source-footer,
@@ -99,6 +101,30 @@ const DEFAULT_CSS = `/* flashcards-obsidian-managed:start */
   color: var(--flashcards-muted);
   font-size: 0.86em;
   font-weight: 650;
+}
+
+.flashcards-type-answer {
+  margin-top: 1.4rem;
+}
+
+#typeans {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+input#typeans {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--flashcards-border);
+  border-radius: 0.45rem;
+  background: var(--flashcards-code-background);
+  color: var(--flashcards-text);
+  font-size: 0.9em;
+}
+
+input#typeans:focus {
+  border-color: var(--flashcards-accent);
+  outline: none;
 }
 
 .flashcards-answer-divider {
@@ -215,6 +241,10 @@ const REVERSED_BACK_TEMPLATE =
 const CLOZE_FRONT_TEMPLATE = `${ANKI_CONTEXT_TEMPLATE}<section class="flashcards-question">{{cloze:Text}}</section>`;
 // Cloze answers appear within Text; an answer ID would scroll away to Extra.
 const CLOZE_BACK_TEMPLATE = `${ANKI_CONTEXT_TEMPLATE}<section class="flashcards-question">{{cloze:Text}}</section>{{#Extra}}<hr class="flashcards-answer-divider"><section class="flashcards-answer">{{Extra}}</section>{{/Extra}}<footer class="flashcards-source-footer">{{Source}}</footer>`;
+// Anki compares the typed text with the Back field; the comparison replaces
+// the answer section, so Back is never shown a second time.
+const TYPE_IN_FRONT_TEMPLATE = `${ANKI_CONTEXT_TEMPLATE}<section class="flashcards-question">{{Front}}</section><section class="flashcards-type-answer">{{type:Back}}</section>`;
+const TYPE_IN_BACK_TEMPLATE = `${ANKI_CONTEXT_TEMPLATE}<section class="flashcards-question">{{Front}}</section><hr id="answer" class="flashcards-answer-divider"><section class="flashcards-type-answer">{{type:Back}}</section><footer class="flashcards-source-footer">{{Source}}</footer>`;
 const REMINDER_FRONT_TEMPLATE = `${ANKI_CONTEXT_TEMPLATE}<section class="flashcards-reminder">{{Content}}</section>`;
 const REMINDER_BACK_TEMPLATE =
   '{{FrontSide}}<hr id="answer" class="flashcards-answer-divider"><section class="flashcards-reminder-guidance">How soon should this come back?</section><footer class="flashcards-source-footer">{{Source}}</footer>';
@@ -310,6 +340,19 @@ export function getAnkiModelSpecs(): AnkiCreateModelSpec[] {
         },
       ],
     },
+    {
+      modelName: ANKI_MODEL_TYPE_IN,
+      inOrderFields: ["Front", "Back", "Context", "Source"],
+      isCloze: false,
+      css: DEFAULT_CSS,
+      cardTemplates: [
+        {
+          Name: "Card 1",
+          Front: TYPE_IN_FRONT_TEMPLATE,
+          Back: TYPE_IN_BACK_TEMPLATE,
+        },
+      ],
+    },
   ];
 }
 
@@ -394,6 +437,16 @@ function md(src: string): string {
   return out.replace(/\s+$/, "");
 }
 
+/**
+ * Anki strips HTML before comparing a typed answer, but a bare inline answer
+ * keeps the field readable in Anki's editor and browser.
+ */
+function unwrapSingleParagraph(html: string): string {
+  const match = /^<p>([\s\S]*)<\/p>$/.exec(html);
+  if (match === null || match[1]!.includes("<p>")) return html;
+  return match[1]!;
+}
+
 function buildSourceLink(ctx: RenderContext, blockId: string): string {
   const vault = encodeURIComponent(ctx.vaultName);
   const file = encodeURIComponent(ctx.notePath);
@@ -455,6 +508,20 @@ export function renderCardForAnki(
       modelName: ANKI_MODEL_REMINDER,
       fields: {
         Content: md(rewrite(card.front)),
+        Context: context,
+        Source: source,
+      } as RenderedFields,
+      tags: ctx.tags,
+    };
+  }
+
+  if (card.kind === "type-in") {
+    return {
+      deckName: ctx.deckName,
+      modelName: ANKI_MODEL_TYPE_IN,
+      fields: {
+        Front: md(rewrite(card.front)),
+        Back: unwrapSingleParagraph(md(rewrite(card.answer))),
         Context: context,
         Source: source,
       } as RenderedFields,

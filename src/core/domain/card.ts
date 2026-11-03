@@ -1,4 +1,4 @@
-export type CardKind = "basic" | "cloze" | "reminder" | "reversed";
+export type CardKind = "basic" | "cloze" | "reminder" | "reversed" | "type-in";
 export type CardSyntax =
   | "inline"
   | "cloze"

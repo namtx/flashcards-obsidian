@@ -9,6 +9,7 @@ import {
   ANKI_MODEL_CLOZE,
   ANKI_MODEL_REMINDER,
   ANKI_MODEL_REVERSED,
+  ANKI_MODEL_TYPE_IN,
   getAnkiModelSpecs,
 } from "../../core/render/render-card.js";
 
@@ -17,6 +18,7 @@ const REQUIRED_MODELS = [
   ANKI_MODEL_REVERSED,
   ANKI_MODEL_CLOZE,
   ANKI_MODEL_REMINDER,
+  ANKI_MODEL_TYPE_IN,
 ];
 const CONTEXT_TOKEN = "{{Context}}";
 

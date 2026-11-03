@@ -15,8 +15,10 @@ Flashcards 2.0.1 and later work with AnkiConnect's default settings. You do not
 need to add `app://obsidian.md` to `webCorsOriginList`.
 
 The first sync auto-creates Anki note types (`Obsidian-basic`,
-`Obsidian-basic-reversed`, `Obsidian-cloze`, `Obsidian-reminder`) and any decks
-it needs.
+`Obsidian-basic-reversed`, `Obsidian-cloze`, `Obsidian-reminder`,
+`Obsidian-type-in`) and any decks it needs. Updating from an earlier version
+adds `Obsidian-type-in` on the next sync and leaves the other note types as
+they are.
 
 ## Commands
 
@@ -79,6 +81,12 @@ Capital of France?::Paris
 
 `Question::Answer` produces a basic card.
 `Question:::Answer` (triple colon) produces a reversed card.
+`Question:=:Answer` produces a type-in card: Anki asks you to type the answer
+and compares your input with it. Keep the answer short and exact; Anki compares
+it with the whole answer field after removing formatting.
+
+Changing a card between `::` and `:=:` converts the linked Anki note in place,
+so its note ID and review history are preserved.
 
 The separators are configurable in settings.
 
@@ -103,7 +111,8 @@ back: Cascading Style Sheets, a stylesheet language for HTML and XML.
 ````
 
 `front:` and `back:` are required fields; an optional `type: reversed`
-produces a reversed card (default is basic). Keys may appear in any order.
+produces a reversed card and `type: type-in` a type-in card (default is
+basic). Keys may appear in any order.
 
 A fenced reminder has one `content:` field instead:
 
@@ -401,6 +410,7 @@ not a way to manage individual exclusions.
 | `contextSeparator` | ` > ` | Text between context parts. Use `\n` for a new line. |
 | `inlineSeparator` | `::` | Basic inline card delimiter. |
 | `inlineReverseSeparator` | `:::` | Reversed inline card delimiter. |
+| `inlineTypeInSeparator` | `:=:` | Type-in inline card delimiter. An empty string turns it off. |
 | `explicitSyntax` | `fenced` | Fenced-block code label. |
 | `hashtag.enabled` | `true` | Recognise hashtag (`#card`) syntax. |
 | `hashtag.basicTag` | `card` | The hashtag used for basic cards (also matches `<basic>-reverse` and `<basic>/reverse`). |

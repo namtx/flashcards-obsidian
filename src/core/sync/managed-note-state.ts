@@ -4,12 +4,14 @@ import {
   ANKI_MODEL_CLOZE,
   ANKI_MODEL_REMINDER,
   ANKI_MODEL_REVERSED,
+  ANKI_MODEL_TYPE_IN,
 } from "../render/render-card.js";
 
 export function desiredManagedModel(card: IdentifiedFlashcard): string {
   if (card.kind === "cloze") return ANKI_MODEL_CLOZE;
   if (card.kind === "reminder") return ANKI_MODEL_REMINDER;
   if (card.kind === "reversed") return ANKI_MODEL_REVERSED;
+  if (card.kind === "type-in") return ANKI_MODEL_TYPE_IN;
   return ANKI_MODEL_BASIC;
 }
 

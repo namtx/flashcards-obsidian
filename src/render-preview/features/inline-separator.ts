@@ -39,6 +39,7 @@ export const createInlineSeparator: FeatureFactory = (
 ): Feature => {
   const basic = settings.inlineSeparator;
   const reversed = settings.inlineReverseSeparator;
+  const typeIn = settings.inlineTypeInSeparator;
 
   return {
     id: "inline-separator",
@@ -51,6 +52,7 @@ export const createInlineSeparator: FeatureFactory = (
 
       for (const [sep, el] of [
         [reversed, { cls: "ff-sep", text: "⇄", data: { kind: "reversed" } }],
+        [typeIn, { cls: "ff-sep", text: "⌨", data: { kind: "type-in" } }],
         [basic, { cls: "ff-sep", text: "→", data: { kind: "basic" } }],
       ] as const) {
         if (!sep) continue;

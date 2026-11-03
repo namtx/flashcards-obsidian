@@ -297,6 +297,39 @@ exports[`test-vault/features snapshot coverage > renders card-types/reminder.md 
 ]
 `;
 
+exports[`test-vault/features snapshot coverage > renders card-types/type-in.md 1`] = `
+[
+  {
+    "deckName": "card-types",
+    "fields": {
+      "Back": "Paris",
+      "Context": "<p>Type in the answer</p>",
+      "Front": "<p>Capital of France?</p>",
+      "Source": "<a class="flashcards-source" href="obsidian://open?vault=Vault&file=card-types%2Ftype-in.md#%5Ecard-0"><span class="flashcards-source-action">Edit source in Obsidian ↗</span><br><small class="flashcards-source-path">card-types/type-in</small></a>",
+    },
+    "modelName": "Obsidian-type-in",
+    "tags": [
+      "obsidian",
+      "feature-fixture",
+    ],
+  },
+  {
+    "deckName": "card-types",
+    "fields": {
+      "Back": "Au",
+      "Context": "<p>Type in the answer</p>",
+      "Front": "<p>Chemical symbol for gold?</p>",
+      "Source": "<a class="flashcards-source" href="obsidian://open?vault=Vault&file=card-types%2Ftype-in.md#%5Ecard-1"><span class="flashcards-source-action">Edit source in Obsidian ↗</span><br><small class="flashcards-source-path">card-types/type-in</small></a>",
+    },
+    "modelName": "Obsidian-type-in",
+    "tags": [
+      "obsidian",
+      "feature-fixture",
+    ],
+  },
+]
+`;
+
 exports[`test-vault/features snapshot coverage > renders content/audio.md 1`] = `
 [
   {

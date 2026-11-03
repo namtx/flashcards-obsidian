@@ -6,6 +6,7 @@ import {
   ANKI_MODEL_CLOZE,
   ANKI_MODEL_REMINDER,
   ANKI_MODEL_REVERSED,
+  ANKI_MODEL_TYPE_IN,
   getAnkiModelSpecs,
   renderCardForAnki,
 } from "../../../src/core/render/render-card.js";
@@ -67,8 +68,8 @@ const CTX = {
 // ============================================================================
 
 describe("getAnkiModelSpecs", () => {
-  it("returns exactly 4 model specs", () => {
-    expect(getAnkiModelSpecs()).toHaveLength(4);
+  it("returns exactly 5 model specs", () => {
+    expect(getAnkiModelSpecs()).toHaveLength(5);
   });
 
   it("wraps long code in the default CSS for every new managed model", () => {
@@ -99,8 +100,10 @@ describe("getAnkiModelSpecs", () => {
         ANKI_MODEL_REVERSED,
         ANKI_MODEL_CLOZE,
         ANKI_MODEL_REMINDER,
+        ANKI_MODEL_TYPE_IN,
       ]),
     );
+    expect(ANKI_MODEL_TYPE_IN).toBe("Obsidian-type-in");
     expect(ANKI_MODEL_BASIC).toBe("Obsidian-basic");
     expect(ANKI_MODEL_REVERSED).toBe("Obsidian-basic-reversed");
     expect(ANKI_MODEL_CLOZE).toBe("Obsidian-cloze");
@@ -197,7 +200,12 @@ describe("getAnkiModelSpecs", () => {
     for (const spec of getAnkiModelSpecs()) {
       for (const tpl of spec.cardTemplates) {
         expect(tpl.Front).toContain(ANKI_CONTEXT_TEMPLATE);
-        if (spec.modelName === ANKI_MODEL_CLOZE) {
+        if (
+          spec.modelName === ANKI_MODEL_CLOZE ||
+          spec.modelName === ANKI_MODEL_TYPE_IN
+        ) {
+          // Type-in repeats {{Front}} like Anki's stock type-in note type so
+          // the answer comparison replaces, not duplicates, the input box.
           expect(tpl.Back).toContain(ANKI_CONTEXT_TEMPLATE);
         } else {
           expect(tpl.Back).not.toContain("{{Context}}");
@@ -247,6 +255,53 @@ describe("renderCardForAnki — reminder", () => {
       Context: "<p>Engineering principles</p>",
       Source: expect.stringContaining("Edit source in Obsidian"),
     });
+  });
+});
+
+describe("renderCardForAnki — type-in", () => {
+  it("renders the Obsidian-type-in model with a bare Back answer", () => {
+    const out = renderCardForAnki(
+      baseCard({
+        answer: "Paris",
+        context: "Geography",
+        front: "Capital of **France**?",
+        kind: "type-in",
+      }),
+      CTX,
+    );
+
+    expect(out.modelName).toBe(ANKI_MODEL_TYPE_IN);
+    expect(out.fields).toEqual({
+      Front: "<p>Capital of <strong>France</strong>?</p>",
+      Back: "Paris",
+      Context: "<p>Geography</p>",
+      Source: expect.stringContaining("Edit source in Obsidian"),
+    });
+  });
+
+  it("keeps multi-paragraph answers as HTML", () => {
+    const out = renderCardForAnki(
+      baseCard({ answer: "one\n\ntwo", kind: "type-in" }),
+      CTX,
+    );
+
+    expect(out.fields.Back).toBe("<p>one</p>\n<p>two</p>");
+  });
+
+  it("asks for the Back field on the front and compares it on the back", () => {
+    const spec = getAnkiModelSpecs().find(
+      (s) => s.modelName === ANKI_MODEL_TYPE_IN,
+    )!;
+
+    expect(spec.isCloze).toBe(false);
+    expect(spec.inOrderFields).toEqual(["Front", "Back", "Context", "Source"]);
+    expect(spec.cardTemplates).toHaveLength(1);
+    const [tpl] = spec.cardTemplates;
+    expect(tpl!.Front).toContain("{{Front}}");
+    expect(tpl!.Front).toContain("{{type:Back}}");
+    expect(tpl!.Back).toContain("{{type:Back}}");
+    expect(tpl!.Back).not.toContain("{{Back}}");
+    expect(tpl!.Back).not.toContain("{{FrontSide}}");
   });
 });
 

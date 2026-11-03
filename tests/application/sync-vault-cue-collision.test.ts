@@ -8,6 +8,7 @@ import {
   ANKI_MODEL_CLOZE,
   ANKI_MODEL_REMINDER,
   ANKI_MODEL_REVERSED,
+  ANKI_MODEL_TYPE_IN,
 } from "../../src/core/render/render-card.js";
 import { DEFAULT_SETTINGS } from "../../src/core/config/settings.js";
 import type { FlashcardsSettings } from "../../src/core/config/settings.js";
@@ -25,7 +26,7 @@ import { bootAllV2, makeFakeFetch, ok } from "../_utils/fake-fetch.js";
  * unchanged note that the incremental cache verified without reading.
  */
 
-const ALL_MODELS = [ANKI_MODEL_BASIC, ANKI_MODEL_REVERSED, ANKI_MODEL_CLOZE, ANKI_MODEL_REMINDER];
+const ALL_MODELS = [ANKI_MODEL_BASIC, ANKI_MODEL_REVERSED, ANKI_MODEL_CLOZE, ANKI_MODEL_REMINDER, ANKI_MODEL_TYPE_IN];
 const VAULT = "MyVault";
 
 // Same normalized cue ("what is chlorophyll?") via trim + casefold + collapsed

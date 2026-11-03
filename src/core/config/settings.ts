@@ -57,6 +57,7 @@ export interface FlashcardsSettings {
   inline: SyntaxToggleSettings;
   inlineReverseSeparator: string;
   inlineSeparator: string;
+  inlineTypeInSeparator: string;
   logLevel: LogLevelSetting;
   logToFile: boolean;
   perfTracing: boolean;
@@ -89,6 +90,7 @@ export const DEFAULT_SETTINGS: FlashcardsSettings = {
   inline: { enabled: true },
   inlineReverseSeparator: ":::",
   inlineSeparator: "::",
+  inlineTypeInSeparator: ":=:",
   logLevel: "info",
   logToFile: true,
   perfTracing: false,
